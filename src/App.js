@@ -1,57 +1,38 @@
-import React from "react";
+import React, {useState, useRef} from 'react'
 
-// function App() {
+function App() {
+  const [word, setWord] = useState('제로초');
+  const [value, setValue] = useState('');
+  const [result, setResult] = useState('');
+  const inputRef = useRef(null);
 
-  class App extends React.Component {
-    constructor(props) {
-      super(props);
-      this.state = {
-        first: Math.ceil(Math.random() * 9),
-        second: Math.ceil(Math.random() * 9),
-        value: '',
-        result: '',
-      };
-    }
+  const onSubmitForm = (e) => {
+    e.preventDefault();
+    if(word[word.length - 1] === value[0]) {
+      setResult('딩동댕');
+      setWord(value);
+      value('');
+      inputRef.current.focus();
+    } else {
+      setResult('땡');
+      setValue('');
+      inputRef.current.focus();
+  };
+  const onChangeInput = (e) => {
+    setValue(e.target.value)
+  };
 
-    onSubmit = (e) => {
-      e.preventDefault();
-            if(parseInt(this.state.value) === this.state.first * this.state.second) {
-              this.setState({
-                result:'정답',
-                first: Math.ceil(Math.random() * 9),
-                second: Math.ceil(Math.random() * 9),
-                value: '',
-              });
-            } else {
-              this.setState({
-                result:'땡',
-                value:'',
-              });
-            }
-    }
-
-    onChange = (e) => {
-      this.setState({ value: e.target.value });
-    }
-
-    render() {
-      return (
-        <>
-          <div>{this.state.first}곱하기{this.state.second}는?</div>
-          <form onSubmit={this.onSubmit}>
-
-
-
-            
-            <input type='number' value={this.state.value} onChange={this.onChange} />
-              <button>입력!</button>
-          </form>
-          <div>{this.state.result}</div>
-        </>
-      );
-    }
+  return (
+    <>
+      <div>{word}</div>
+      <form onSubmit={onSubmitForm}>
+        <input ref={inputRef} value={value} onChange={onChangeInput} />
+        <button>입력</button>
+      </form>
+      <div>{result}</div>
+    </>
+  )
   }
-
-// }
+}
 
 export default App;
