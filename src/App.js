@@ -1,80 +1,59 @@
-import React, { useState } from 'react';
-import Try from './Try';
+import React, { useState, useRef } from "react";
 
-function getNumbers() {
-  const candidate = [1,2,3,4,5,6,7,8,9];
-  const array = [];
-  for (let i = 0; i < 4; i += 1){
-    const chosen = candidate.splice(Math.floor(Math.random() * (9 - i)), 1)[0];
-    array.push(chosen);
-  }
-  return array;
-}
-const App = () =>  {
+const App = () => {
+  
+  const [state, setState] = useState('waiting');
+  const [message, setMessage] = useState('클릭해서 시작하세요');
+  const [result, setResult] = useState([]);
+  const timeout = useRef(null);
+  const startTime = useRef();
+  const endTime = useRef();
 
-  const [result, setResult] = useState('');
-  const [value, setValue] = useState('');
-  const [answer, setAnswer] = useState(getNumbers());
-  const [tries, setTries] = useState([]);
-
-  const onSubmitForm = (e) =>{
-    e.preventDefault();
-    if (value === answer.join('')) {
-      setResult('홈런');
-      setTries((prevState) => {
-        return [...prevState, { try: value, result:'홈런!' }]
+  const onClickScreen = () => {
+    if (state === 'waiting') {
+      setState('ready');
+      setMessage('초록색이 되면 클릭하세요')
+      timeout.current = setTimeout(() => {
+        setState('now');
+        setMessage('지금 클릭')
+        startTime.current = new Date();
+      }, Math.floor(Math.random() * 1000) + 2000);
+    } else if (state === 'ready'){ // 성급하게 클릭
+      clearTimeout(timeout.current)
+      setState('waiting')
+      setMessage('너무 성급하시군요! 초록색이 된 후에 클릭하세요.')
+    } else if (state === 'now') { // 반응속도 체크
+      endTime.current = new Date();   
+      setState('waiting');
+      setMessage('클릭헤서 시작하세요')
+      setResult((prevState) => {
+        return [...prevState.result, this.endTime - this.startTime]
       })
-      alert('게임을 다시 시작합니다.')
-      setValue('');
-      setAnswer(getNumbers());
-      setTries([]);
-    } else {
-      const answerArray = value.split('').map((v) => parseInt(v));
-      let strike = 0;
-      let ball = 0;
-      if (tries.length >= 9) { //10번 이상 틀렸을때
-        setResult(`10번 넘게 틀려서 실패! 답은 ${answer.join(',')}였습니다.`)
-        alert('게임을 다시 시작합니다.')
-        setValue('');
-        setAnswer(getNumbers());
-        setTries([]);
-      } else {
-        for (let i = 0; i < 4; i += 1){
-          if (answerArray[i] === answer[i]) {
-            strike += 1;
-          } else if (answer.includes(answerArray[i])) {
-            ball += 1;
-          }
-        }
-        setTries((prevState) => {
-          return [...prevState, { try: value, result: `${strike} 스트라이크, ${ball} 볼입니다.` }]
-        })
-        setValue('');
-      }
     }
   };
-
-  const onChangeInput = (e) => {
-    setValue(e.target.value);
+  const onReset = () => {
+    setResult([]);
   };
-
+  const renderAverage = () => {
+    return result.length === 0
+      ? null
+      : <>
+      <div>평균 시간: {result.reduce((a, c) => a + c) / result.length}ms </div>
+      <button onClick={onReset}>리셋</button>
+      </>
+  }
   return (
     <>
-      <h1>{result}</h1>
-      <form onSubmit={onSubmitForm}>
-        <input maxLength={4} value={value} onChange={onChangeInput} />
-      </form>
-      <div>시도: {tries.length}</div>
-      <ul>
-        {tries.map((v, i) => {
-          return (
-            <Try key={`${i - 1}차 시도 : `} tryInfo={v} index={i} />
-          )
-        })}
-      </ul>
-    </>
+        <div
+          id='screen'
+          className={state}
+          onClick={onClickScreen}
+        >
+          {message}
+        </div>
+        {renderAverage()}
+      </>
   )
-
-
 }
+
 export default App;
